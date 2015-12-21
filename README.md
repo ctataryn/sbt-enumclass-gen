@@ -94,7 +94,10 @@ object Flg extends SealedEnumCompanion[Flg, Char] {
 }
 ```
 
+* and document markdown
 
+see example/docs/markdown.md
+ 
 ## Using the plugin
 
 1. add following to your project's `plugin.sbt` 
@@ -182,9 +185,3 @@ enumClassSettings := Seq(
  - generate scala file name
 - documentPath(optional)
  - markdown document file path
-
-
-
-```
-abstract case 
-```
