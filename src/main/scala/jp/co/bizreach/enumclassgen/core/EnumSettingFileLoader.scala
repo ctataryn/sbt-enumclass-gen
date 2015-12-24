@@ -3,6 +3,7 @@ package jp.co.bizreach.enumclassgen.core
 import java.io.{FileInputStream, BufferedInputStream, File}
 import java.util
 import scala.collection.JavaConverters._
+import jp.co.bizreach.enumclassgen.setting._
 
 import org.yaml.snakeyaml.Yaml
 
@@ -49,13 +50,13 @@ object EnumSettingFileLoader extends FileUtils {
           } yield {
             val comment = valueMap.get("comment").map(_.toString)
             val applyValue = valueMap.get("applyValue").map(_.toString)
-            val attrs = valueMap.get("attrs").map(_.asInstanceOf[util.Map[String, String]].asScala).map { attrMap =>
+            val attrs = valueMap.get("attrs").map(_.asInstanceOf[util.Map[String, Any]].asScala).map { attrMap =>
               if (!attrKeys.filter(_.required).forall(key => attrMap.contains(key.name)))
-                throw new IllegalStateException("Required Attr key not contains")
+                throw new IllegalStateException(s"Required Attr key not contains[enumName=${enumName}, ${valueName}][$valueMap](keys=$attrKeys)")
 
               attrKeys.flatMap{ key =>
                 attrMap.get(key.name).map{ value =>
-                  EnumAttrValue(key, value)
+                  EnumAttrValue(key, value.toString)
                 }
               }
             }.getOrElse(Nil)

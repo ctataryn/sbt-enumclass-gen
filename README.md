@@ -117,7 +117,8 @@ enumClassSettings := Seq(
     sourcePath = "app",
     packageName = "models",
     enumClassName = "Enums",
-    documentPath = Some("docs/enums.md")
+    documentPath = Some("docs/enums.md"),
+    slickSupport = false
   )
 )
 ```
@@ -183,5 +184,14 @@ enumClassSettings := Seq(
  - geneate class package
 - enumClassName
  - generate scala file name
-- documentPath(optional)
+- documentPath
  - markdown document file path
+- slickSupport
+ - generate slick custom type mapping(required slick)
+ 
+### SlickSupport
+
+- Required Version
+ 
+|sbt-enumclass-gen|slick|
+|0.5.0|3.1.x|

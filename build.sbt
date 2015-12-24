@@ -4,7 +4,7 @@ organization := "jp.co.bizreach"
 
 name := "sbt-enumclass-gen"
 
-version := "0.3.0-SNAPSHOT"
+version := "0.6.0"
 
 scalaVersion := "2.10.4"
 
