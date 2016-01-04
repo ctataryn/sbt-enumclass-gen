@@ -1,7 +1,6 @@
 package jp.co.bizreach.enumclassgen
 
-import com.typesafe.config.Config
-import jp.co.bizreach.enumclassgen.core.{EnumSlickSupportGenerator, EnumDocumentGenerator, EnumClassGenerator}
+import jp.co.bizreach.enumclassgen.generator._
 import sbt._
 import Keys._
 import sbt.complete.Parsers._
@@ -12,12 +11,11 @@ import setting._
   * Created by nishiyama on 2015/12/09.
   */
 object EnumClassGenPlugin extends AutoPlugin
-  with EnumClassGenerator with EnumDocumentGenerator with EnumSlickSupportGenerator {
+  with EnumClassGenerator with EnumDocumentGenerator with EnumSlickSupportGenerator with EnumPlaySupportGenerator {
 
   object autoImport {
 
     val generateEnumClass = taskKey[Unit]("generate enum classes")
-
     val enumClassSettings = settingKey[Seq[EnumClassSetting]]("enum settings")
 
     lazy val baseOfEnumClassMappings: Seq[Def.Setting[_]] = Seq(
@@ -28,6 +26,7 @@ object EnumClassGenPlugin extends AutoPlugin
             generateEnumClassFile(s)
             generateEnumDocFile(s)
             generateEnumSlickSupportFile(s)
+            generateEnumPlaySupportFile(s)
           }
         }
       },
