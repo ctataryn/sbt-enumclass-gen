@@ -76,7 +76,11 @@ trait EnumSlickSupportGenerator {
         |  }
         |}
         |
-       |class ${setting.enumClassName}MappingNotFoundException[A](message: String, value: A) extends Exception(message)
+        |class ${setting.enumClassName}MappingNotFoundException[A](message: String, value: A) extends Exception(message) {
+        |  override def getMessage: String = {
+        |    message + s"value=$$value"
+        |  }
+        |}
         |""".stripMargin
   }
 
@@ -104,7 +108,7 @@ trait EnumSlickSupportGenerator {
 
     s"""trait ${enumClass.name}SqlTypeConverter extends ${setting.enumClassName}SqlTypeConverter[${enumClass.enumType}, ${enumClass.name}] {
         |  override def toSqlType(b: ${enumClass.name}): ${enumClass.enumType} = b.value
-        |  override def fromSqlType(a: ${enumClass.enumType}): ${enumClass.name} = ${enumClass.name}.valueOf(a).fold(throw new ${setting.enumClassName}MappingNotFoundException("${enumClass.name} mapping not Found value=[a]", a))(identity)
+        |  override def fromSqlType(a: ${enumClass.enumType}): ${enumClass.name} = ${enumClass.name}.valueOf(a).fold(throw new ${setting.enumClassName}MappingNotFoundException("${enumClass.name} mapping not Found", a))(identity)
         |}
         |
        |class ${enumClass.name}Mapper(val driver: JdbcProfile) {

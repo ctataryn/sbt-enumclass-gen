@@ -61,7 +61,7 @@ trait EnumClassGenerator {
 
     val enumClassConstructorString = if (es.nonEmpty) es.mkString(", ", ", ", "") else ""
     s"""/** ${enumClass.name}: ${enumClass.description.getOrElse("")} */
-       |abstract sealed class ${enumClass.name}(val value: ${enumClass.enumType}$enumClassConstructorString) extends SealedEnum[${enumClass.enumType}]""".stripMargin
+       |abstract sealed class ${enumClass.name}(val value: ${enumClass.enumType}$enumClassConstructorString) extends SealedEnum[${enumClass.enumType}] { val v: ${enumClass.name} = this }""".stripMargin
   }
 
   protected def generateEnumValues(enumClass: EnumClass): String = {
