@@ -11,7 +11,7 @@ import setting._
   * Created by nishiyama on 2015/12/09.
   */
 object EnumClassGenPlugin extends AutoPlugin
-  with EnumClassGenerator with EnumDocumentGenerator with EnumSlickSupportGenerator with EnumPlaySupportGenerator {
+  with EnumClassGenerator with EnumDocumentGenerator with EnumSlickSupportGenerator with EnumPlayJsonWritesSupportGenerator {
 
   object autoImport {
 

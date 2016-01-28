@@ -3,6 +3,7 @@ package jp.co.bizreach.enumclassgen.generator
 import java.io.File
 
 import jp.co.bizreach.enumclassgen.core.{EnumClass, EnumSettingFileLoader, EnumValue}
+import jp.co.bizreach.enumclassgen.setting.EnumClassGeneratorSupport.PlaySupport
 import jp.co.bizreach.enumclassgen.setting.EnumClassSetting
 import sbt.IO
 
@@ -20,18 +21,20 @@ trait EnumClassGenerator {
   protected def generateEnumClassFileString(setting: EnumClassSetting): String = {
     val enumClasses = EnumSettingFileLoader.loadEnumClassYaml(new File(setting.enumSettingFile))
 
+    val supportPlayJson = setting.support.contains(PlaySupport)
+
     s"""${generatePackageLine(setting)}
-       |
+       |${if(supportPlayJson)"import play.api.data.validation.ValidationError\nimport play.api.libs.json._\n" else ""}
        |$generateTraitSealedEnum
        |$generateTraitSealedEnumCompanion
        |
-       |${enumClasses.map(generateEnumClassObject).mkString("\n")}
+       |${enumClasses.map(e => generateEnumClassObject(e, supportPlayJson)).mkString("\n")}
        |""".stripMargin
   }
 
-  protected def generateEnumClassObject(enumClass: EnumClass): String = {
+  protected def generateEnumClassObject(enumClass: EnumClass, supportPlayJson: Boolean): String = {
     s"""${generateAbstractSealedClass(enumClass)}
-       |${generateEnumObject(enumClass)}
+       |${generateEnumObject(enumClass, supportPlayJson)}
        |""".stripMargin
   }
 
@@ -105,18 +108,41 @@ trait EnumClassGenerator {
     s"def apply(value: ${enumClass.enumType}): ${enumClass.name} = valueMap.getOrElse(value, values.head)"
   }
 
-  protected def generateEnumObject(enumClass: EnumClass): String = {
+  protected def generateEnumObject(enumClass: EnumClass, supportPlayJson: Boolean): String = {
     s"""object ${enumClass.name} extends SealedEnumCompanion[${enumClass.name}, ${enumClass.enumType}] {
        |${enumClass.values.map(generateEnumValueCaseObject(_, enumClass)).mkString}
-       |
        |  ${generateEnumValues(enumClass)}
        |  ${generateEnumMaps(enumClass)}
        |  ${generateApplyMethods(enumClass)}
+       |${if (supportPlayJson) generateEnumImplicits(enumClass) else ""}
        |${generateApplyTpeMethods(enumClass)}
        |}
        |""".stripMargin
   }
 
+  protected def generateEnumImplicits(enumClass: EnumClass): String = {
+    s"""  implicit val ${enumClass.name}Writes: Writes[${enumClass.name}] = new Writes[${enumClass.name}] {
+        |    def writes(enum: ${enumClass.name}) = Json.toJson(enum.value.toString)
+        |  }
+        |  implicit val ${enumClass.name}Reads: Reads[${enumClass.name}] = new Reads[${enumClass.name}] {
+        |    def reads(json: JsValue): JsResult[${enumClass.name}] = {
+        |      json.validateOpt[String].fold[JsResult[${enumClass.name}]](
+        |        invalid => JsError(invalid),
+        |        valid => valid.flatMap(v => ${enumClass.name}.valueOf(${enumTypeValue(enumClass.enumType)})).fold[JsResult[${enumClass.name}]](
+        |          JsError(__, ValidationError("validate.error.missing", "${enumClass.name}"))
+        |        )(validValue => JsSuccess(validValue))
+        |      )
+        |    }
+        |  }
+        |""".stripMargin
+  }
+
+  private def enumTypeValue(enumType: String): String = {
+    enumType match {
+      case "Char" => "v.head"
+      case _ => "v"
+    }
+  }
   private def valDefineStr(name: String, typeName: String, option: Boolean = false): String = {
     val t = if (option) s"Option[$typeName]" else typeName
     s"val $name: $t"

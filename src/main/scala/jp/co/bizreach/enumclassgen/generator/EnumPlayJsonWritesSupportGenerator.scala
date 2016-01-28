@@ -9,7 +9,7 @@ import sbt.IO
 /**
   * Created by nishiyama on 2016/01/04.
   */
-trait EnumPlaySupportGenerator {
+trait EnumPlayJsonWritesSupportGenerator {
   def generateEnumPlaySupportFile(setting: EnumClassSetting): Unit = {
     if (setting.supportPlay) {
       val fileString = generateEnumPlaySupportFileString(setting)
@@ -23,7 +23,6 @@ trait EnumPlaySupportGenerator {
 
     s"""${generatePlaySupportPackageLine(setting)}
        |
-       |import play.api.data.validation.ValidationError
        |import play.api.libs.json._
        |
        |${generateImplicitObjects(setting, enumClasses)}
@@ -36,28 +35,17 @@ trait EnumPlaySupportGenerator {
 
   protected def generateImplicitObjects(setting: EnumClassSetting, enumClasses: Seq[EnumClass]): String = {
     s"""object ${setting.enumClassName}Implicits {
-       |
-       |${enumClasses.map(generateEnumImplicits).mkString("\n")}
-       |
+       |${enumClasses.map(generateEnumFullImplicits).mkString("\n")}
        |}""".stripMargin
   }
 
-  protected def generateEnumImplicits(enumClass: EnumClass): String = {
-    s"""  implicit val ${enumClass.name}Writes: Writes[${enumClass.name}] = new Writes[${enumClass.name}] {
-       |    def writes(enum: ${enumClass.name}) = Json.toJson(enum.value.toString)
+  protected def generateEnumFullImplicits(enumClass: EnumClass): String = {
+    s"""  implicit val ${enumClass.name}FullWrites: Writes[${enumClass.name}] = new Writes[${enumClass.name}] {
+       |    def writes(enum: ${enumClass.name}) = Json.obj(
+       |      "value" -> enum.value${if(enumClass.enumType == "Char")".toString" else ""}
+       |${enumClass.attrKeys.map(k => s"""    , "${k.name}" -> enum.${k.name}${if(k.attrType == "Char")".toString" else ""}""").mkString("\n")}
+       |    )
        |  }
-       |
-       |  implicit val ${enumClass.name}Reads: Reads[${enumClass.name}] = new Reads[${enumClass.name}] {
-       |    def reads(json: JsValue): JsResult[${enumClass.name}] = {
-       |      json.validateOpt[String].fold[JsResult[${enumClass.name}]](
-       |        invalid => JsError(invalid),
-       |        valid => valid.flatMap(v => ${enumClass.name}.valueOf(${enumTypeValue(enumClass.enumType)})).fold[JsResult[${enumClass.name}]](
-       |          JsError(__, ValidationError("validate.error.missing", "${enumClass.name}"))
-       |        )(validValue => JsSuccess(validValue))
-       |      )
-       |    }
-       |  }
-       |
        |""".stripMargin
   }
 
