@@ -1,10 +1,11 @@
 # SBT EnumClass Gen
  
-that will generate enumeration case classes.
+This project will, using a declarative Yaml file, generate enumeration Scala case classes.
 
-When use case object instead of scala enumeration, many boilerplate codes. 
-This plugin generate case objects code and markdown document from enum-mapping.yml files.
+When we use case object instead of Scala enumeration there is a lot of boilerplate code to deal with. 
+This plugin will generate your case object code and markdown document from enum-mapping.yml files, thus it will take care of writing all the boilerplate code for you.
 
+The Enumerations generated can also be made to be [Slick](http://slick.lightbend.com/) compatible by also generating custom mapping functions for your Enums
 
 ## Example 
 
